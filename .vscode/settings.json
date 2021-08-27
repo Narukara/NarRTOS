@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "stm32f10x_rcc.h": "c"
+        "stm32f10x_rcc.h": "c",
+        "stdlib.h": "c",
+        "cstdlib": "c"
     }
 }

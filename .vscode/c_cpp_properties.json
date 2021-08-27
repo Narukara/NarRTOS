@@ -14,9 +14,9 @@
                 "-D",
                 "USE_STDPERIPH_DRIVER",
                 "-D",
-                "STM32F10X_MD",
-                "-D",
-                "USE_FULL_ASSERT"
+                "STM32F10X_MD"
+                // "-D",
+                // "USE_FULL_ASSERT"
             ]
         }
     ],
