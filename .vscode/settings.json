@@ -2,6 +2,10 @@
     "files.associations": {
         "stm32f10x_rcc.h": "c",
         "stdlib.h": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "stm32f10x.h": "c",
+        "typeinfo": "c",
+        "limits": "c",
+        "*.tcc": "c"
     }
 }

@@ -1,0 +1,1 @@
+#define STACK _Alignas(uint64_t) u32
