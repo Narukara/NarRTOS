@@ -1,12 +1,14 @@
 #include "stm32f10x.h"
 
-typedef struct task_handler {
-    u32* PSP;
-    struct task_handler* next;
-    u32 ID;
-} os_task_handler;
+#include "os_svc.h"
+#include "os_types.h"
 
 static os_task_handler* task_now = 0;
+
+void os_init() {
+    NVIC_SetPriority(PendSV_IRQn, 0xFF);
+    os_svc_init();
+}
 
 /**
  * Tasks should not return.
@@ -43,6 +45,7 @@ u32 os_task_create(void (*task)(u32), u32* stack, u32 size) {
     __disable_irq();
     os_task_handler* p = os_new_task_handler();
     if (p == 0) {
+        __enable_irq();
         return 0;
     }
     ID++;
@@ -71,7 +74,6 @@ u32 os_task_create(void (*task)(u32), u32* stack, u32 size) {
  * This function never return.
  */
 void os_start() {
-    NVIC_SetPriority(PendSV_IRQn, 0xFF);
     SysTick->LOAD = 9000;  // 1ms
     SysTick->VAL = 0;
     SysTick->CTRL = 0x03;
@@ -80,6 +82,7 @@ void os_start() {
         "msr psp, r0;"
         "ldr r0, =0x02;"
         "msr control, r0;"  // use PSP
+        "isb;"
         "pop {r4-r11};"
         "pop {r0-r3, r12, lr};"
         "pop {r4, r5};"  // r4 = PC, r5 = xPSR
@@ -94,7 +97,7 @@ void SysTick_Handler() {
 void PendSV_Handler() {
     __ASM(
         "mrs r0, psp;"
-        "stmdb r0!,{r4-r11};"); // push r4-r11 on PSP
+        "stmdb r0!,{r4-r11};");  // push r4-r11 on PSP
     __ASM("str r0, %0" : "=m"(task_now->PSP));
     task_now = task_now->next;
     __ASM("ldr r0, %0;" ::"m"(task_now->PSP));
