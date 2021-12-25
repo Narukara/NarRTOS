@@ -4,16 +4,16 @@
 #include "os_task.h"
 #include "os_types.h"
 
-os_stack_t stack1[32];  // 128b
-void task1(u32 ID) {
+TASK_STACK stack1[32];  // 128b
+void task1(u16 ID) {
     while (0) {
         __SVC(0);
         __SVC(1);
     }
 }
 
-os_stack_t stack2[32];  // 128b
-void task2(u32 ID) {
+TASK_STACK stack2[32];  // 128b
+void task2(u16 ID) {
     while (1) {
         __SVC(2);
         __SVC(3);
@@ -23,8 +23,8 @@ void task2(u32 ID) {
 #include "stm32f10x_gpio.h"
 #include "stm32f10x_rcc.h"
 
-os_stack_t stack3[64];  // 256b
-void task3(u32 ID) {
+TASK_STACK stack3[64];  // 256b
+void task3(u16 ID) {
     GPIO_Init(GPIOC, &(GPIO_InitTypeDef){.GPIO_Pin = GPIO_Pin_15,
                                          .GPIO_Mode = GPIO_Mode_Out_PP,
                                          .GPIO_Speed = GPIO_Speed_2MHz});
@@ -36,9 +36,9 @@ void task3(u32 ID) {
 
 int main() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;  // stack aligned on double-word
-    os_svc_init();
-    os_task_create(task1, stack1, 32);
-    os_task_create(task2, stack2, 32);
-    os_task_create(task3, stack3, 64);
+    os_init();
+    task_create(task1, stack1, 32, 0);
+    task_create(task2, stack2, 32, 0);
+    task_create(task3, stack3, 64, 0);
     os_start();
 }
