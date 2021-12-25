@@ -1,2 +1,5 @@
-just for fun and study
+#### 实验性的RTOS内核
 
+针对 ARMv7-M 架构
+
+just for fun

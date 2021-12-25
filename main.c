@@ -4,41 +4,42 @@
 #include "os_task.h"
 #include "os_types.h"
 
-TASK_STACK stack1[32];  // 128b
-void task1(u16 ID) {
-    while (0) {
-        __SVC(0);
-        __SVC(1);
+static void delay(u32);
+
+os_stack_t stack1[32];  // 128 bytes
+void task1(u32 ID) {
+    while (1) {
+        delay(3600000);
+        __SVC(0);  // PC13 = 1
+        delay(3600000);
+        __SVC(1);  // PC13 = 0
     }
 }
 
-TASK_STACK stack2[32];  // 128b
-void task2(u16 ID) {
+os_stack_t stack2[32];  // 128 bytes
+void task2(u32 ID) {
     while (1) {
-        __SVC(2);
-        __SVC(3);
-    }
-}
-
-#include "stm32f10x_gpio.h"
-#include "stm32f10x_rcc.h"
-
-TASK_STACK stack3[64];  // 256b
-void task3(u16 ID) {
-    GPIO_Init(GPIOC, &(GPIO_InitTypeDef){.GPIO_Pin = GPIO_Pin_15,
-                                         .GPIO_Mode = GPIO_Mode_Out_PP,
-                                         .GPIO_Speed = GPIO_Speed_2MHz});
-    while (1) {
-        GPIO_WriteBit(GPIOC, GPIO_Pin_15, Bit_SET);
-        GPIO_WriteBit(GPIOC, GPIO_Pin_15, Bit_RESET);
+        delay(1800000);
+        __SVC(2);  // PC14 = 1
+        delay(1800000);
+        __SVC(3);  // PC14 = 0
     }
 }
 
 int main() {
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;  // stack aligned on double-word
     os_init();
-    task_create(task1, stack1, 32, 0);
-    task_create(task2, stack2, 32, 0);
-    task_create(task3, stack3, 64, 0);
+    os_task_create(task1, stack1, 32);
+    os_task_create(task2, stack2, 32);
     os_start();
 }
+
+#pragma GCC push_options
+#pragma GCC optimize("O0")
+
+static void delay(u32 time) {
+    while (time > 0)
+        time--;
+}
+
+#pragma GCC pop_options
