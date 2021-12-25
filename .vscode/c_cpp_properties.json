@@ -3,20 +3,22 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/*",
+                "${workspaceFolder}/lib/*",
+                "${workspaceFolder}/app/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/arm-none-eabi-gcc",
             "cStandard": "gnu17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "linux-gcc-x64",
+            "intelliSenseMode": "linux-gcc-arm",
             "compilerArgs": [
                 "-D",
                 "USE_STDPERIPH_DRIVER",
                 "-D",
-                "STM32F10X_MD"
-                // "-D",
-                // "USE_FULL_ASSERT"
+                "STM32F10X_MD",
+                "-D",
+                "USE_FULL_ASSERT"
             ]
         }
     ],
