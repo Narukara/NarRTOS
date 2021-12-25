@@ -4,33 +4,25 @@
 #include "os_task.h"
 #include "os_types.h"
 
-os_stack_t stack1[32];  // 128b
+static void delay(u32);
+
+os_stack_t stack1[32];  // 128 bytes
 void task1(u32 ID) {
-    while (0) {
-        __SVC(0);
-        __SVC(1);
+    while (1) {
+        delay(3600000);
+        __SVC(0);   // PC13 = 1
+        delay(3600000);
+        __SVC(1);   // PC13 = 0
     }
 }
 
-os_stack_t stack2[32];  // 128b
+os_stack_t stack2[32];  // 128 bytes
 void task2(u32 ID) {
     while (1) {
-        __SVC(2);
-        __SVC(3);
-    }
-}
-
-#include "stm32f10x_gpio.h"
-#include "stm32f10x_rcc.h"
-
-os_stack_t stack3[64];  // 256b
-void task3(u32 ID) {
-    GPIO_Init(GPIOC, &(GPIO_InitTypeDef){.GPIO_Pin = GPIO_Pin_15,
-                                         .GPIO_Mode = GPIO_Mode_Out_PP,
-                                         .GPIO_Speed = GPIO_Speed_2MHz});
-    while (1) {
-        GPIO_WriteBit(GPIOC, GPIO_Pin_15, Bit_SET);
-        GPIO_WriteBit(GPIOC, GPIO_Pin_15, Bit_RESET);
+        delay(1800000);
+        __SVC(2);   // PC14 = 1
+        delay(1800000);
+        __SVC(3);   // PC14 = 0
     }
 }
 
@@ -39,6 +31,15 @@ int main() {
     os_svc_init();
     os_task_create(task1, stack1, 32);
     os_task_create(task2, stack2, 32);
-    os_task_create(task3, stack3, 64);
     os_start();
 }
+
+#pragma GCC push_options
+#pragma GCC optimize("O0")
+
+static void delay(u32 time) {
+    while (time > 0)
+        time--;
+}
+
+#pragma GCC pop_options

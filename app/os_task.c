@@ -4,7 +4,6 @@ typedef struct task_handler {
     u32* PSP;
     struct task_handler* next;
     u32 ID;
-
 } os_task_handler;
 
 static os_task_handler* task_now = 0;
@@ -18,11 +17,14 @@ static void error_return() {
         ;
 }
 
-#define MAX_TASK 4
+#define MAX_TASK_NUM 4
+/**
+ * @brief get a new handler
+ */
 static os_task_handler* os_new_task_handler() {
-    static os_task_handler handler[MAX_TASK];
+    static os_task_handler handler[MAX_TASK_NUM];
     static u8 num = 0;
-    if (num < MAX_TASK) {
+    if (num < MAX_TASK_NUM) {
         return handler + num++;
     } else {
         return 0;
@@ -92,11 +94,11 @@ void SysTick_Handler() {
 void PendSV_Handler() {
     __ASM(
         "mrs r0, psp;"
-        "stmdb r0!,{r4-r11};");
+        "stmdb r0!,{r4-r11};"); // push r4-r11 on PSP
     __ASM("str r0, %0" : "=m"(task_now->PSP));
     task_now = task_now->next;
     __ASM("ldr r0, %0;" ::"m"(task_now->PSP));
     __ASM(
-        "ldmia r0!, {r4-r11};"
+        "ldmia r0!, {r4-r11};"  // pop r4-r11 from PSP
         "msr psp, r0");
 }
