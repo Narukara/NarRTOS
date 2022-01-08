@@ -4,7 +4,7 @@
 #include "os_types.h"
 
 static os_task_handler* task_head;
-static os_task_handler *task_next, *task_last;
+static os_task_handler *task_now, *task_last;
 
 static os_stack_t idle_task_stack[16];
 static u32 idle_PSP = (u32)&idle_task_stack;
@@ -88,11 +88,28 @@ u32 os_task_create(void (*task)(u32), u32* stack, u32 size, u8 priority) {
 }
 
 /**
+ * @brief delay a task
+ * @note delay time is imprecise
+ * @param ms milliseconds to delay. 0 stands for infinity
+ */
+void os_task_delay(u32 ms) {
+    __disable_irq();
+    task_now->status = suspend;
+    task_now->timeout = ms;
+    __enable_irq();
+    volatile u8* status = &(task_now->status);
+    while (*status == suspend) {
+        __WFE();
+        __DSB();
+    }
+}
+
+/**
  * Make sure that at least one task has been created.
  * This function never return.
  */
 void os_start() {
-    task_next = task_head;
+    task_now = task_head;
     SysTick->LOAD = 9000;  // 1ms
     SysTick->VAL = 0;
     SysTick->CTRL = 0x03;
@@ -115,7 +132,7 @@ void os_start() {
 }
 
 void SysTick_Handler() {
-    task_last = task_next;
+    task_last = task_now;
     u8 max_priority = 0;
     os_task_handler* stop = task_head;
     do {
@@ -130,7 +147,7 @@ void SysTick_Handler() {
         if (task_head->status == ready) {
             if (task_head->priority > max_priority) {
                 max_priority = task_head->priority;
-                task_next = task_head;
+                task_now = task_head;
             }
         }
         task_head = task_head->next;
@@ -141,10 +158,10 @@ void SysTick_Handler() {
         task_head = task_head->next;
     } else {
         // not found, keep task_head still
-        task_next = idle_handler;
+        task_now = idle_handler;
     }
 
-    if (task_last != task_next) {
+    if (task_last != task_now) {
         SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;  // set PendSV
     }
 }
@@ -159,7 +176,7 @@ void PendSV_Handler() {
         "mrs r0, psp;"
         "stmdb r0!,{r4-r11};");  // push r4-r11 on PSP
     __ASM("str r0, %0" : "=m"(task_last->PSP));
-    __ASM("ldr r0, %0;" ::"m"(task_next->PSP));
+    __ASM("ldr r0, %0;" ::"m"(task_now->PSP));
     __ASM(
         "ldmia r0!, {r4-r11};"  // pop r4-r11 from PSP
         "msr psp, r0");
