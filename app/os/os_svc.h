@@ -5,7 +5,14 @@
 
 void os_svc_init();
 
+enum SVC_type {
+    setC13,
+    resetC13,
+    setC14,
+    resetC14,
+};
+
 // arg must be const
-#define __SVC(arg) __ASM volatile("svc %0" ::"i"(arg))
+#define os_svc(arg) __ASM volatile("svc %0" ::"i"(arg))
 
 #endif

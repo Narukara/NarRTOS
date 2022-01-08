@@ -18,7 +18,9 @@
                 "-D",
                 "STM32F10X_MD",
                 "-D",
-                "USE_FULL_ASSERT"
+                "USE_FULL_ASSERT",
+                "-D",
+                "OS_PRIVILEGED_TASK"
             ]
         }
     ],

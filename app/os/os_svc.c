@@ -3,6 +3,8 @@
 #include "stm32f10x_gpio.h"
 #include "stm32f10x_rcc.h"
 
+#include "os_svc.h"
+
 void os_svc_init() {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
     GPIO_Init(GPIOC, &(GPIO_InitTypeDef){
@@ -23,16 +25,16 @@ void SVC_Handler() {
         "ldrb %0, [r0, #-2]"
         : "=r"(svc_arg));
     switch (svc_arg) {
-        case 0:
+        case setC13:
             GPIO_SetBits(GPIOC, GPIO_Pin_13);
             break;
-        case 1:
+        case resetC13:
             GPIO_ResetBits(GPIOC, GPIO_Pin_13);
             break;
-        case 2:
+        case setC14:
             GPIO_SetBits(GPIOC, GPIO_Pin_14);
             break;
-        default:
+        case resetC14:
             GPIO_ResetBits(GPIOC, GPIO_Pin_14);
             break;
     }

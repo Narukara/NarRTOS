@@ -13,6 +13,8 @@ TARGET = STM32F103C8
 
 # USE_ASSERT = true
 
+OS_PRIVILEGED_TASK = true
+
 ############## config end ##############
 
 ifeq ($(TARGET),STM32F103C6)
@@ -31,6 +33,10 @@ endif
 
 ifeq ($(USE_ASSERT),true)
 	MACRO += -D USE_FULL_ASSERT
+endif
+
+ifeq ($(OS_PRIVILEGED_TASK),true)
+	MACRO += -D OS_PRIVILEGED_TASK
 endif
 
 LINK = -specs=nano.specs -specs=nosys.specs -static -Wl,-cref,-u,Reset_Handler -Wl,-Map=build/target.map -Wl,--gc-sections -Wl,--defsym=malloc_getpagesize_P=0x80 -Wl,--start-group -lc -lm -Wl,--end-group
